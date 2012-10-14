@@ -14,7 +14,7 @@
 @class EGOImageView;
 @class ProgressView;
 
-@interface DetailViewController : UIViewController<ASIHTTPRequestDelegate, MBProgressHUDDelegate>{
+@interface DetailViewController : UIViewController<ASIHTTPRequestDelegate, MBProgressHUDDelegate, UIAlertViewDelegate>{
     IconInfo * iconInfo;
     CGRect initFrame;
     NSMutableData * imageData;

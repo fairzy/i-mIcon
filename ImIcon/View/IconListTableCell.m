@@ -11,7 +11,7 @@
 #import "EGOImageView.h"
 #import "ToolBox.h"
 #import "ViewController.h"
-
+#import "MobClick.h"
 
 @interface ListBgView : UIView
 
@@ -169,22 +169,27 @@
         [btn setBackgroundImage:[UIImage imageNamed:@"listcell_like_btn.png"] forState:UIControlStateNormal];
         self.iconInfo.localLiked = NO;
         [ToolBox deleteLikeIconId:self.iconInfo.appId];
+        
+        [MobClick event:@"likeClick" label:self.iconInfo.appId];
     }else{
         [btn setBackgroundImage:[UIImage imageNamed:@"listcell_like_btn_hig.png"] forState:UIControlStateNormal];
         self.iconInfo.localLiked = YES;
         [ToolBox saveLikeIconId:self.iconInfo.appId];
     }
+    
 }
 
 - (void)saveClick:(id)sender{
     NSLog(@"save");
     if ( delegate  ) {
         [delegate performSelector:@selector(saveIcon:) withObject:iconImage.image ];
+        
+        [MobClick event:@"saveClick" label:self.iconInfo.appId];
     }
 }
 
 - (void)storeClick:(id)sender{
-    
+    [MobClick event:@"saveClick" label:self.iconInfo.appId];
     UIAlertView * alert = [[UIAlertView alloc] initWithTitle:@"跳转" message:@"打开App Store查看App否?" delegate:self cancelButtonTitle:@"取消" otherButtonTitles:@"确定", nil];
     [alert show];
     [alert release];
@@ -192,8 +197,11 @@
 
 - (void)alertView:(UIAlertView *)alertView clickedButtonAtIndex:(NSInteger)buttonIndex{
     if ( buttonIndex == 1 ) {
+        [MobClick event:@"storeRealJump" label:self.iconInfo.appId];
+        
         NSURL * url = [NSURL URLWithString: self.iconInfo.itunesUrl];
         [[UIApplication sharedApplication] openURL: url];
+        
     }
 }
 

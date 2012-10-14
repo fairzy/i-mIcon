@@ -27,7 +27,7 @@
     if (self) {
         self.backgroundColor = [UIColor colorWithRed:247.0f/255.0f green:247.0f/255.0f blue:247.0f/255.0f alpha:1.0f];
         // 标题
-        UILabel * title = [[UILabel alloc] initWithFrame:CGRectMake(10, 0, 155, 40)];
+        UILabel * title = [[UILabel alloc] initWithFrame:CGRectMake(30, 0, 155, 40)];
         title.text = txt;
         title.backgroundColor = [UIColor colorWithRed:247.0f/255.0f green:247.0f/255.0f blue:247.0f/255.0f alpha:1.0f];
         [self addSubview:title];

@@ -7,13 +7,16 @@
 //
 
 #import <UIKit/UIKit.h>
+#import "AboutView.h"
 
 @interface CateView : UIView <UIScrollViewDelegate>{
     NSArray * cateList;
     
     UIScrollView * scrollView;
-    NSMutableArray * cateBtns; 
+    NSMutableArray * cateBtns;
+    AboutView * aboutView;
     
+    NSString * oldTitle;
     BOOL isShown;
     int selectedCateIndex;
     id delegate;
@@ -24,6 +27,8 @@
 @property (nonatomic, retain) NSMutableArray * cateBtns;
 @property (nonatomic, assign) BOOL isShown;
 @property (nonatomic, retain) UIScrollView * scrollView;
+@property (nonatomic, retain) UIView * boardView;
+@property (nonatomic, retain) NSString * oldTitle;
 
 - (void)show:(BOOL)show;
 - (void)initView;

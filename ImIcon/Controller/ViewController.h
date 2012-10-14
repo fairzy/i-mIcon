@@ -27,6 +27,7 @@ enum ListType {
     MBProgressHUD *HUD;
     LoadMoreView * loadMoreView;
     UIView * containerView;
+    UIImageView * arrowImg;
     
     NSMutableArray * dataArray; // 数据源
     enum ListType listType;
@@ -44,6 +45,7 @@ enum ListType {
 @property (nonatomic, assign) CGRect iconTapRect;
 @property (nonatomic, retain) NSString * reqParam;
 @property (nonatomic, retain) LoadMoreView * loadMoreView;
+@property (nonatomic, retain) UIImageView * arrowImg;
 
 - (void)initDataView:(NSString *)url;
 

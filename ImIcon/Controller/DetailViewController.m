@@ -12,6 +12,7 @@
 #import "ToolBox.h"
 #import "AButton.h"
 #import "ProgressView.h"
+#import "MobClick.h"
 
 @interface DetailViewController ()
 
@@ -159,14 +160,16 @@
 }
 
 - (void)downBtnClick:(id)sender{
-    NSLog(@"%s", __func__);
-    NSString * itunesurl = self.iconInfo.itunesUrl;
-    NSLog(@"itunesurl:%@", itunesurl);
-    [[UIApplication sharedApplication] openURL:[NSURL URLWithString:itunesurl ]];
+    [MobClick event:@"storeClick" label:self.iconInfo.appId];
+    
+    UIAlertView * alert = [[UIAlertView alloc] initWithTitle:@"跳转" message:@"打开App Store查看App否?" delegate:self cancelButtonTitle:@"取消" otherButtonTitles:@"确定", nil];
+    [alert show];
+    [alert release];
+    
+    
 }
 
 - (void)saveBtnClick:(id)sender{
-    NSLog(@"%s", __func__);
     if ( imageLoaded ) {
         HUD = [[MBProgressHUD alloc] initWithView:self.view];
         HUD.yOffset = -80.0f;
@@ -176,6 +179,7 @@
         
         UIImageWriteToSavedPhotosAlbum(self.iconImgView.image, self, @selector(image:didFinishSavingWithError:contextInfo:), nil);
     }
+    [MobClick event:@"saveClick" label:self.iconInfo.appId];
 }
 
 - (void)heartBtnClick:(id)sender{
@@ -185,6 +189,8 @@
         [btn setBackgroundImage:[UIImage imageNamed:@"heart-btn.png"] forState:UIControlStateNormal];
         self.iconInfo.localLiked = NO;
         [ToolBox deleteLikeIconId:self.iconInfo.appId];
+        
+        [MobClick event:@"likeClick" label:self.iconInfo.appId];
     }else{
         [btn setBackgroundImage:[UIImage imageNamed:@"heart-btn-hig.png"] forState:UIControlStateNormal];
         self.iconInfo.localLiked = YES;
@@ -248,6 +254,16 @@
     
 }
 
+- (void)alertView:(UIAlertView *)alertView clickedButtonAtIndex:(NSInteger)buttonIndex{
+    if ( buttonIndex == 1 ) {
+        [MobClick event:@"storeRealJump" label:self.iconInfo.appId];
+        
+        NSString * itunesurl = self.iconInfo.itunesUrl;
+        [[UIApplication sharedApplication] openURL:[NSURL URLWithString:itunesurl ]];
+    }
+    
+}
+
 #pragma mark -
 
 - (void)viewDidUnload
@@ -271,6 +287,8 @@
     [HUD release];
 	HUD = nil;
 }
+
+
 
 - (void)dealloc{
     NSLog(@"%s", __func__);

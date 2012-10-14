@@ -17,7 +17,7 @@
 #import "LoadingCell.h"
 #import "LoadMoreView.h"
 #import "ToolBox.h"
-#import "AboutViewController.h"
+#import "MobClick.h"
 
 #define API_URL @"http://iconapi.sinaapp.com" // no / in the end
 
@@ -30,7 +30,7 @@
 
 @implementation ViewController
 
-@synthesize bannerView, loadMoreView;
+@synthesize bannerView, loadMoreView, arrowImg;
 @synthesize dataArray;
 @synthesize cateView, containerView;
 @synthesize iconTapRect;
@@ -85,6 +85,13 @@
     self.bannerView = banner;
     banner.delegate = self;
     [banner release];
+    
+    // 标题栏小箭头
+    UIImageView * arrow = [[UIImageView alloc] initWithFrame:CGRectMake(2, 10, 20, 20)];
+    [arrow setImage: [UIImage imageNamed:@"arrow_r.png"]];
+    [self.bannerView addSubview:arrow];
+    self.arrowImg = arrow;
+    [arrow release];
 }
 
 - (void)viewDidLoad
@@ -103,6 +110,9 @@
     [self initDataView:nil];
 }
 
+- (void)viewDidAppear:(BOOL)animated{
+    [super viewDidAppear:animated];
+}
 
 - (void)initDataView:(NSString *)param{
     self.dataArray = nil;
@@ -259,8 +269,9 @@
         listType = ListTypeGrid;
         listTableView.alpha = 0.0f;
         gridTableView.alpha = 1.0f;
-        
     }
+    
+    [MobClick event:@"SwitchBtnClick"];
 }
 - (void)animationDidStop:(CAAnimation *)anim finished:(BOOL)flag{
     NSLog(@"stopped");
@@ -271,12 +282,17 @@
 #pragma mark -
 
 - (void)bannerClick{
-    AboutViewController * con = [[AboutViewController alloc] init];
-    con.modalTransitionStyle = UIModalTransitionStyleCrossDissolve;
-    [self presentModalViewController:con animated:YES];
-    return;
     if ( self.cateView.isShown ) {
+        // 旋转箭头
+        [UIView animateWithDuration:0.25f delay:0.25f options:UIViewAnimationCurveEaseIn animations:^{
+            CATransform3D rt = CATransform3DIdentity;
+            rt = CATransform3DRotate(rt, 0.0f, 0.0f, 0.0f, 1.0f);
+            self.arrowImg.layer.transform = rt;
+        } completion:nil];
+    
+        // 显示下啦view
         [self.cateView show:NO];
+        // 缩放底层view
         [UIView animateWithDuration:0.25f delay:0.25f options:UIViewAnimationCurveEaseIn animations:^{
             CATransform3D t = CATransform3DIdentity;
             t = CATransform3DScale(t, 1.0f, 1.0f, 1.0f);
@@ -285,7 +301,13 @@
         
         self.bannerView.switchBtn.userInteractionEnabled = YES;
     }else {
-        //
+        // 旋转箭头
+        [UIView animateWithDuration:0.25f delay:0.25f options:UIViewAnimationCurveEaseIn animations:^{
+            CATransform3D rt = CATransform3DIdentity;
+            rt = CATransform3DRotate(rt, 45.0f, 0.0f, 0.0f, 1.0f);
+            self.arrowImg.layer.transform = rt;
+        } completion:nil];
+        // 缩放view
         [UIView animateWithDuration:0.25f animations:^{
             CATransform3D t = CATransform3DIdentity;
             t = CATransform3DScale(t, 0.8f, 0.8f, 0.8f);
@@ -293,19 +315,23 @@
         } completion:^(BOOL finished){
             [self.cateView show:YES];
         }];
-//        [self.cateView show:YES];
         self.bannerView.switchBtn.userInteractionEnabled = NO;
     }
     
+    [MobClick event:@"BannerClick"];
 }
+
 
 #pragma mark - custom delegate
 // 点击了icon，查看大图
 - (void)iconTaped:(IconInfo *)info{
     NSLog(@"tapped!");
+    
     DetailViewController * detailController = [[DetailViewController alloc] initWithIconInfo:info initFrame:iconTapRect];
     [self presentModalViewController:detailController animated:NO];
     [detailController release];
+    
+    [MobClick event:@"iconTaped" label:info.appId];
 }
 
 - (void)saveIcon:(UIImage *)img{
@@ -315,7 +341,6 @@
     [HUD show:YES];
     
     UIImageWriteToSavedPhotosAlbum(img, self, @selector(image:didFinishSavingWithError:contextInfo:), nil);
-    
 }
 
 
@@ -335,11 +360,7 @@
 
 
 - (void)cateItemSelected:(NSDictionary *)dict{
-    [UIView animateWithDuration:0.25f delay:0.25f options:UIViewAnimationCurveEaseIn animations:^{
-        CATransform3D t = CATransform3DIdentity;
-        t = CATransform3DScale(t, 1.0f, 1.0f, 1.0f);
-        self.containerView.layer.transform = t;
-    } completion:nil];
+    [self bannerClick];
     //
     NSString * title = [dict objectForKey:@"title"];
     self.bannerView.titleLabel.text = title;
@@ -352,6 +373,8 @@
     [gridTableView reloadData];
     
     [self performSelector:@selector(initDataView:) withObject:self.reqParam];
+    
+    [MobClick event:@"cateItemSelected" label:title];
 }
 
 - (NSArray *)array2IconInfoArray:(NSArray *)array{
@@ -501,6 +524,7 @@
 }
 
 - (void)dealloc{
+    [arrowImg release];
     [bannerView release];
     [gridTableView release];
     [listTableView release];

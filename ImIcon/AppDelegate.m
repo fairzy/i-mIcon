@@ -7,7 +7,7 @@
 //
 
 #import "AppDelegate.h"
-
+#import "MobClick.h"
 #import "ViewController.h"
 
 @implementation AppDelegate
@@ -29,6 +29,9 @@
     self.viewController = [[[ViewController alloc] init] autorelease];
     self.window.rootViewController = self.viewController;
     [self.window makeKeyAndVisible];
+    
+    [MobClick startWithAppkey:@"503c917a527015112f00003a"];
+    
     return YES;
 }
 

@@ -8,6 +8,10 @@
 
 #import "CateView.h"
 #import "CateBtn.h"
+#import "MPFoldTransition.h"
+#import "ViewController.h"
+#import "BannerView.h"
+#import "MobClick.h"
 
 #import <QuartzCore/QuartzCore.h>
 
@@ -19,8 +23,8 @@
 @implementation CateView
 
 @synthesize cateList, isShown;
-@synthesize scrollView, cateBtns;
-@synthesize delegate;
+@synthesize scrollView, cateBtns, boardView;
+@synthesize delegate, oldTitle;
 
 - (id)initWithFrame:(CGRect)frame
 {
@@ -45,8 +49,7 @@
     // 白板
     UIView * board = [[UIView alloc] initWithFrame:CGRectMake(8, 0, self.frame.size.width-16, self.frame.size.height-30)];
     board.backgroundColor = [UIColor whiteColor];
-    [self addSubview:board];
-    [board release];
+    
     // keys
     NSArray * catekey = [self.cateList valueForKey:@"group_name"];
     // btns
@@ -57,7 +60,7 @@
         // 计算坐标
         float height = 42;
         float width = 64;
-        int x = 3;
+        int x = 0-5;
         int y = 10 + (height+8) * i;
         // 按钮
         CateBtn * btn = [[CateBtn alloc] initWithFrame:CGRectMake(x, y, width, height)];
@@ -65,7 +68,7 @@
         NSString * catename = [catekey objectAtIndex:i];
         [btn setTitle:catename forState:UIControlStateNormal];
         btn.titleLabel.adjustsFontSizeToFitWidth = YES;
-        [self addSubview:btn];
+        [board addSubview:btn];
         [btn addTarget:self action:@selector(cateSelected:) forControlEvents:UIControlEventTouchUpInside];
         if ( i == 0 ) {
             btn.selected = YES;
@@ -75,7 +78,7 @@
     }
     // 右侧具体分类
     // hold住
-    UIScrollView * scrView = [[UIScrollView alloc] initWithFrame:CGRectMake(82, 10, self.frame.size.width-90, self.frame.size.height-75.0f)];
+    UIScrollView * scrView = [[UIScrollView alloc] initWithFrame:CGRectMake(82-8, 10, self.frame.size.width-90, self.frame.size.height-75.0f)];
     [self addSubview:scrView];
     scrView.showsVerticalScrollIndicator = NO;
     scrView.showsHorizontalScrollIndicator = NO;
@@ -123,12 +126,12 @@
     }
     
     [scrView setContentSize:CGSizeMake(SCROLL_WIDTH*catekey.count, SCROLL_HEIGHT)];
-    [self addSubview:scrView];
+    [board addSubview:scrView];
     self.scrollView = scrView;
     [scrView release];
     
     // 底部信息栏
-    UIImageView * infoBar = [[UIImageView alloc] initWithFrame:CGRectMake(8,  self.frame.size.height-70, self.frame.size.width-16, 40)];
+    UIImageView * infoBar = [[UIImageView alloc] initWithFrame:CGRectMake(0,  self.frame.size.height-70, self.frame.size.width-16, 40)];
     infoBar.image = [UIImage imageNamed:@"infobar_bg.png"];
     infoBar.userInteractionEnabled = YES;
     // info按钮
@@ -143,13 +146,34 @@
     [infoBar addSubview:shrinkbtn];
     [shrinkbtn release];
     
-    [self addSubview:infoBar];
+    [board addSubview:infoBar];
     [infoBar release];
+    
+    [self addSubview:board];
+    self.boardView = board;
+    [board release];
+    
+    aboutView = [[AboutView alloc] initWithFrame:CGRectMake(8, 0, self.frame.size.width-16, self.frame.size.height-30)];
+    UITapGestureRecognizer * gesture = [[UITapGestureRecognizer alloc] initWithTarget:self action:@selector(hideAbout:)];
+    [aboutView addGestureRecognizer:gesture];
+    [gesture release];
 }
 
 #pragma mark -
 - (void)infoClick:(id)sender{
+    self.oldTitle = [NSString stringWithFormat:@"%@", ((ViewController *)delegate).bannerView.titleLabel.text ];
+    ((ViewController *)delegate).bannerView.titleLabel.text = @"关于我们";
+    [MPFoldTransition transitionFromView:self.boardView
+                                  toView:aboutView
+                                duration:[MPFoldTransition defaultDuration]
+                                   style:MPFoldStyleUnfold
+                        transitionAction:MPTransitionActionAddRemove
+                              completion:^(BOOL finished) {
+                                  self.userInteractionEnabled = YES;
+                              }
+     ];
     
+    [MobClick event:@"infoClick"];
 }
 
 - (void)shrinkClick:(id)sender{
@@ -188,11 +212,9 @@
         sender.transform = CGAffineTransformScale(sender.transform, 2, 2);
         sender.alpha = 0;
     } completion:^(BOOL finish){
-        [self show:NO];
         sender.transform = CGAffineTransformScale(sender.transform, 0.5, 0.5);
         sender.alpha = 1;
         
-        NSLog(@"perform");
         if ( [delegate respondsToSelector:@selector(cateItemSelected:)] ) {
             NSDictionary * dict = [NSDictionary dictionaryWithObjectsAndKeys:selTitle, @"title", param, @"param", nil];
             [delegate performSelector:@selector(cateItemSelected:) withObject:dict];
@@ -204,13 +226,17 @@
     if ( show == isShown ) {
         return;
     }
+    if ( self.oldTitle != nil ) {
+        [self hideSequ];
+        return;
+    }
     CGRect frame = self.frame;
     if ( show ) {
         self.hidden = NO;
         frame.origin.y = frame.origin.y + frame.size.height-2;
         isShown = YES;
     }else{
-         frame.origin.y = frame.origin.y - frame.size.height+2;
+        frame.origin.y = frame.origin.y - frame.size.height+2;
         isShown = NO;
     }
     [UIView animateWithDuration:0.25f
@@ -219,7 +245,45 @@
                      } completion:^(BOOL finished){
                          self.hidden = !show;
                      }];
-    [self setFrame:frame];
+}
+
+// 先返回分类页面，再收回
+- (void)hideSequ{
+    ((ViewController *)delegate).bannerView.titleLabel.text = self.oldTitle;
+    [oldTitle release];
+    oldTitle = nil;
+    [MPFoldTransition transitionFromView:aboutView
+                                  toView:self.boardView
+                                duration:[MPFoldTransition defaultDuration]
+                                   style:MPFoldStyleCubic
+                        transitionAction:MPTransitionActionAddRemove
+                              completion:^(BOOL finished) {
+                                  CGRect frame = self.frame;
+                                  frame.origin.y = frame.origin.y - frame.size.height+2;
+                                  isShown = NO;
+                                  [UIView animateWithDuration:0.25f
+                                                   animations:^{
+                                                       [self setFrame:frame];
+                                                   } completion:^(BOOL finished){
+                                                       self.hidden = YES;
+                                                   }];
+                              }
+     ];
+}
+
+- (void)hideAbout:(UIGestureRecognizer *)gesture{
+    ((ViewController *)delegate).bannerView.titleLabel.text = self.oldTitle;
+    [oldTitle release];
+    oldTitle = nil;
+    [MPFoldTransition transitionFromView:aboutView
+                                  toView:self.boardView
+                                duration:[MPFoldTransition defaultDuration]
+                                   style:MPFoldStyleCubic
+                        transitionAction:MPTransitionActionAddRemove
+                              completion:^(BOOL finished) {
+                                  self.userInteractionEnabled = YES;
+                              }
+     ];
 }
 
 #pragma mark UIScrollViewDelegate
@@ -231,10 +295,12 @@
 
 #pragma mark dealloc
 - (void)dealloc{
+    [oldTitle release];
     [cateList release];
     [scrollView release];
     [cateBtns release];
-    
+    [boardView release];
+    [aboutView release];
     [super dealloc];
 }
 
