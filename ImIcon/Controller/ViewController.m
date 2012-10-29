@@ -20,7 +20,7 @@
 #import "MobClick.h"
 
 #define API_URL @"http://iconapi.sinaapp.com" // no / in the end
-
+#define iPHONE5 ([UIScreen mainScreen].bounds.size.height==568)
 
 @interface ViewController ()
 
@@ -38,17 +38,20 @@
 
 - (void)loadView{
     [super loadView];
+    NSLog(@"%@",  NSStringFromCGSize([UIScreen mainScreen].bounds.size));
     // 数据初始化
     listType = ListTypeList;
     isLoadingMore = NO;
     // 容器
-    UIView * conview = [[UIView alloc] initWithFrame:CGRectMake(0, 0, 320, 480)];
+    int screenHeight = [UIScreen mainScreen].bounds.size.height;
+    UIView * conview = [[UIView alloc] initWithFrame:CGRectMake(0, 0, 320, screenHeight)];
+    conview.autoresizingMask = UIViewAutoresizingFlexibleHeight | UIViewAutoresizingFlexibleBottomMargin;
     // 背景
     conview.backgroundColor = [UIColor colorWithRed:234.0f/255.0f green:234.0f/255.0f blue:231.0f/255.0f alpha:1.0f];
-    self.view.backgroundColor = [UIColor blackColor];
+    self.view.backgroundColor = [UIColor greenColor];
     
     // 网格列表
-    gridTableView = [[UITableView alloc] initWithFrame:CGRectMake(0, 48, 320, 432) style:UITableViewStylePlain];
+    gridTableView = [[UITableView alloc] initWithFrame:CGRectMake(0, 48, 320, screenHeight-48) style:UITableViewStylePlain];
     [conview addSubview:gridTableView];
     gridTableView.backgroundColor =  [UIColor colorWithRed:234.0f/255.0f green:234.0f/255.0f blue:231.0f/255.0f alpha:1.0f];
     gridTableView.separatorStyle = UITableViewCellSeparatorStyleNone; 
@@ -56,8 +59,9 @@
     gridTableView.dataSource = self;
     //gridTableView.hidden = YES;
     gridTableView.alpha = 0.0f;
+    gridTableView.autoresizingMask = UIViewAutoresizingFlexibleHeight| UIViewAutoresizingFlexibleBottomMargin;
     // 列表2
-    listTableView = [[UITableView alloc] initWithFrame:CGRectMake(0, 48, 320, 432) style:UITableViewStylePlain];
+    listTableView = [[UITableView alloc] initWithFrame:CGRectMake(0, 48, 320, screenHeight-48) style:UITableViewStylePlain];
     [conview addSubview:listTableView];
     listTableView.backgroundColor =  [UIColor colorWithRed:234.0f/255.0f green:234.0f/255.0f blue:231.0f/255.0f alpha:1.0f];
     listTableView.separatorStyle = UITableViewCellSeparatorStyleNone;
@@ -65,6 +69,7 @@
     listTableView.dataSource = self;
     //listTableView.hidden = NO;
     listTableView.alpha = 1.0f;
+    listTableView.autoresizingMask = UIViewAutoresizingFlexibleHeight| UIViewAutoresizingFlexibleBottomMargin;
     //
     [self.view addSubview:conview];
     self.containerView = conview;
