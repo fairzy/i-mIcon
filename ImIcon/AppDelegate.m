@@ -30,7 +30,8 @@
     self.window.rootViewController = self.viewController;
     [self.window makeKeyAndVisible];
     
-    [MobClick startWithAppkey:@"503c917a527015112f00003a"];
+    [MobClick startWithAppkey:@"503c917a527015112f00003a" reportPolicy:BATCH channelId:@"JB"];
+    [MobClick checkUpdate];
     
     return YES;
 }
